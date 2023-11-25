@@ -21,7 +21,7 @@ class Graph:
     def constructAdjacency(self):
         """
         Calculate the matrix
-        :return: adjacency matrix
+        :return A: adjacency matrix
         """
         adjacency = np.zeros((len(self.vertices), len(self.vertices)))
         for edge in self.edges:
@@ -35,7 +35,7 @@ class Graph:
     def PageRank(self, maxiter=5000, tolerance=1 * 10 ** (-6)):
         """
         Implementation of the pagerank algorithm
-        :return: ranking on vertexes
+        :return p: ranking on vertexes
         """
         if np.max(self.adjacency) == 0:
             return self.adjacency
@@ -71,35 +71,49 @@ class Graph:
 
     def connectedComponents(self):
         """
-        Returns the number of connected componentsn and the list of visited connected compoennts
+        Returns the number of connected components and the list of visited connected components
         :param self:
-        :return: k, components[]
+        :return k, components[]:
         """
-        k = int
+        k = 0
         components = []
         visited = []
         for v in self.vertices:
             if v not in visited:
                 nodes = []
-                visited, nodes = depthFirstSearch(v, visited)
+                visited, nodes = self.depthFirstSearch(v, visited, nodes)
                 k += 1
                 components.append(nodes)
         return k, components
 
-    def depthFirstSearch(self, v, visited):
+    def depthFirstSearch(self, v, visited, nodes):
         """
         Performs a depth first search
         :param v:
         :param visited:
-        :return:
+        :param nodes:
+        :return visited, nodes:
         """
+        visited.append(v)
+        nodes.append(v)
+        A = self.adjacency
+        adjNodes = [v]
+        for i in range(len(A[:, self.dictionary.index(v)])):
+            if A[i, self.dictionary.index(v)] == 1:
+                adjNodes.append(self.dictionary[i])
+        for node in adjNodes:
+            if node not in visited:
+                visited, nodes = self.depthFirstSearch(node, visited, nodes)
+        return visited, nodes
+
+
 def wattsStrogatz(N, K, p):
     """
     Generate a random graph using the Watts-Strogatz method
     :param N: Graph order
     :param K: Mean degree (even integer)
     :param p: rewiring probability
-    :return: A random graph
+    :return A: random graph
     """
     A = np.zeros((N, N))
     for i in range(N):
@@ -122,8 +136,8 @@ def wattsStrogatz(N, K, p):
 def verticesAndEdgesFromAdjacency(A):
     """
     Finds edges and vertices from the adjacency matrix
-    :param A: Adjacency matrix
-    :return: (vertices, edges)
+    :param A:
+    :return vertices, edges:
     """
     vertices = np.arange(A.shape[0])
     edges = np.argwhere(A == 1)
@@ -131,7 +145,7 @@ def verticesAndEdgesFromAdjacency(A):
 
 
 newGraph = Graph(['A', 'B', 'C', 'D'], [['B', 'A'], ['B', 'C'], ['C', 'A'], ['D', 'A'], ['D', 'B'], ['D', 'C']], True)
+newGraph2 = Graph(['A', 'B', 'C', 'D', 'E'], [['B', 'A'], ['A', 'C'], ['D', 'E']], False)
 graph2 = Graph(*verticesAndEdgesFromAdjacency(wattsStrogatz(10, 3, 0.5)), True)
-
-print(newGraph.adjacency)
-print(graph2.edges)
+print(newGraph2.adjacency)
+print(newGraph2.connectedComponents())
