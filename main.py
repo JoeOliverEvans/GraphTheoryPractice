@@ -106,6 +106,34 @@ class Graph:
                 visited, nodes = self.depthFirstSearch(node, visited, nodes)
         return visited, nodes
 
+    def edgeRemoval(self, e):
+        """
+        Removes an edge
+        :param e:
+        :return self:
+        """
+        A = self.adjacency
+        A[self.dictionary[e[0]], self.dictionary[1]] = 0
+        if not self.directed:
+            A[self.dictionary[e[1]], self.dictionary[0]] = 0
+        self.vertices, self.edges = verticesAndEdgesFromAdjacency(A)
+        self.adjacency = A
+        return self
+
+    def nodeRemoval(self, v):
+        """
+        Removes a node and connections
+        :param v:
+        :return self:
+        """
+        A = self.adjacency
+        np.delete(A, self.dictionary.index(v), 0)
+        np.delete(A, self.dictionary.index(v), 1)
+        self.vertices, self.edges = verticesAndEdgesFromAdjacency(A)
+        self.adjacency = A
+        self.dictionary = self.constructDictionaryList()
+        return self
+
 
 def wattsStrogatz(N, K, p):
     """
