@@ -113,9 +113,9 @@ class Graph:
         :return self:
         """
         A = self.adjacency
-        A[self.dictionary[e[0]], self.dictionary[1]] = 0
+        A[self.dictionary.index(e[0]), self.dictionary.index(e[1])] = 0
         if not self.directed:
-            A[self.dictionary[e[1]], self.dictionary[0]] = 0
+            A[self.dictionary.index(e[1]), self.dictionary.index(e[0])] = 0
         self.vertices, self.edges = verticesAndEdgesFromAdjacency(A)
         self.adjacency = A
         return self
@@ -127,8 +127,8 @@ class Graph:
         :return self:
         """
         A = self.adjacency
-        np.delete(A, self.dictionary.index(v), 0)
-        np.delete(A, self.dictionary.index(v), 1)
+        A = np.delete(A, self.dictionary.index(v), 0)
+        A = np.delete(A, self.dictionary.index(v), 1)
         self.vertices, self.edges = verticesAndEdgesFromAdjacency(A)
         self.adjacency = A
         self.dictionary = self.constructDictionaryList()
@@ -176,4 +176,4 @@ newGraph = Graph(['A', 'B', 'C', 'D'], [['B', 'A'], ['B', 'C'], ['C', 'A'], ['D'
 newGraph2 = Graph(['A', 'B', 'C', 'D', 'E'], [['B', 'A'], ['A', 'C'], ['D', 'E']], False)
 graph2 = Graph(*verticesAndEdgesFromAdjacency(wattsStrogatz(10, 3, 0.5)), True)
 print(newGraph2.adjacency)
-print(newGraph2.connectedComponents())
+print(newGraph2.nodeRemoval('A').adjacency)
