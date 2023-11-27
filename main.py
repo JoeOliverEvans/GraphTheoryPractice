@@ -1,5 +1,5 @@
 import math
-
+import copy
 import numpy as np
 
 
@@ -10,6 +10,7 @@ class Graph:
         self.directed = directed
         self.dictionary = self.constructDictionaryList()
         self.adjacency = self.constructAdjacency()
+        #self.bridges = self.detectBridges()
 
     def constructDictionaryList(self):
         dictionary = []
@@ -106,34 +107,62 @@ class Graph:
                 visited, nodes = self.depthFirstSearch(node, visited, nodes)
         return visited, nodes
 
-    def edgeRemoval(self, e):
+    def edgeRemoval(self, e, set_values=True):
         """
         Removes an edge
+        :param set_values: whether to alter the graph
         :param e:
         :return self:
         """
-        A = self.adjacency
+        A = copy.copy(self.adjacency)
         A[self.dictionary.index(e[0]), self.dictionary.index(e[1])] = 0
         if not self.directed:
             A[self.dictionary.index(e[1]), self.dictionary.index(e[0])] = 0
-        self.vertices, self.edges = verticesAndEdgesFromAdjacency(A)
-        self.adjacency = A
-        return self
+        if set_values:
+            self.vertices, self.edges = verticesAndEdgesFromAdjacency(A)
+            self.adjacency = A
+        return Graph(*verticesAndEdgesFromAdjacency(A))
 
-    def nodeRemoval(self, v):
+    def nodeRemoval(self, v, set_values=True):
         """
         Removes a node and connections
+        :param set_values: whether to alter the graph
         :param v:
         :return self:
         """
-        A = self.adjacency
+        A = copy.copy(self.adjacency)
         A = np.delete(A, self.dictionary.index(v), 0)
         A = np.delete(A, self.dictionary.index(v), 1)
-        self.vertices, self.edges = verticesAndEdgesFromAdjacency(A)
-        self.adjacency = A
-        self.dictionary = self.constructDictionaryList()
-        return self
-
+        if set_values:
+            self.vertices, self.edges = verticesAndEdgesFromAdjacency(A)
+            self.adjacency = A
+            self.dictionary = self.constructDictionaryList()
+        return Graph(*verticesAndEdgesFromAdjacency(A))
+    
+    def detectBridges(self):
+        """
+        Find bridges in the graph
+        :return bridges: 
+        """
+        bridges = []
+        A = self.adjacency
+        for i in range((A.shape[0])):
+            for j in range((A.shape[0])):
+                valid = False
+                if A[i, j] == 1 and i != j:
+                    if not self.directed:
+                        if i < j:
+                            valid = True
+                    else:
+                        valid = True
+                    if valid:
+                        prunedgraph = copy.copy(self)
+                        prunedgraph = prunedgraph.edgeRemoval([self.dictionary[i], self.dictionary[j]], set_values=False)
+                        if prunedgraph.connectedComponents()[0] > self.connectedComponents()[0]:
+                            bridges.append([self.dictionary[i], self.dictionary[j]])
+                        del prunedgraph
+        return bridges
+        
 
 def wattsStrogatz(N, K, p):
     """
@@ -173,7 +202,11 @@ def verticesAndEdgesFromAdjacency(A):
 
 
 newGraph = Graph(['A', 'B', 'C', 'D'], [['B', 'A'], ['B', 'C'], ['C', 'A'], ['D', 'A'], ['D', 'B'], ['D', 'C']], True)
-newGraph2 = Graph(['A', 'B', 'C', 'D', 'E'], [['B', 'A'], ['A', 'C'], ['D', 'E']], False)
-graph2 = Graph(*verticesAndEdgesFromAdjacency(wattsStrogatz(10, 3, 0.5)), True)
-print(newGraph2.adjacency)
-print(newGraph2.nodeRemoval('A').adjacency)
+newGraph2 = Graph(['A', 'B', 'C', 'D', 'E'], [['B', 'A'], ['A', 'C'], ['D', 'E'], ['A', 'D']], False)
+newGraph3 = Graph(['A', 'B', 'C', 'D', 'E'], [['B', 'A'], ['A', 'C'], ['D', 'E']], False)
+
+graph2 = Graph(*verticesAndEdgesFromAdjacency(wattsStrogatz(4, 2, 0.1)), False)
+print(newGraph2.connectedComponents())
+print(newGraph3.connectedComponents())
+print(newGraph3.detectBridges())
+print(graph2.adjacency)
